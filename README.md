@@ -11,8 +11,9 @@ I did this to get an idea of what idiomatic Hapi.js would look like, written in 
 This isn't meant to be used for anything other than learning.
 
 ## Dependencies
- - TypeScript
- - Hapi.js
- - Sqlite (the repo)
- - Angular 
- - Jest
+
+- TypeScript
+- Hapi.js
+- Sqlite (the repo)
+- Angular
+- Jest

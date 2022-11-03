@@ -1,8 +1,5 @@
-
-
 export interface TodoItem {
-  id?: number
-  description: string
-  done: boolean
+  id?: number;
+  description: string;
+  done: boolean;
 }
-

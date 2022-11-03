@@ -1,8 +1,8 @@
-import {IRepo} from "../../src/repo/db";
-import {TodoItem} from "../../src/model/model";
+import { IRepo } from "../../src/repo/db";
+import { TodoItem } from "../../src/model/model";
 
 export class MockRepo implements IRepo {
-  todos: Map<number, TodoItem>
+  todos: Map<number, TodoItem>;
   broken: boolean = false;
   constructor() {
     this.todos = new Map<number, TodoItem>();
@@ -22,7 +22,7 @@ export class MockRepo implements IRepo {
     return Promise.resolve(todoItem);
   }
 
-  public async  deleteAllTodoItems(): Promise<void> {
+  public async deleteAllTodoItems(): Promise<void> {
     if (this.broken) {
       return Promise.reject(new Error("Repo is broken"));
     }
@@ -31,7 +31,7 @@ export class MockRepo implements IRepo {
   }
 
   public async deleteDb(): Promise<void> {
-    await this.deleteAllTodoItems()
+    await this.deleteAllTodoItems();
     return Promise.resolve(undefined);
   }
 
@@ -48,7 +48,9 @@ export class MockRepo implements IRepo {
       return Promise.reject(new Error("Repo is broken"));
     }
     const item = this.todos.get(id);
-    return item ? Promise.resolve(item) : Promise.reject(new Error("Item not found"));
+    return item
+      ? Promise.resolve(item)
+      : Promise.reject(new Error("Item not found"));
   }
 
   public async getTodoItems(): Promise<TodoItem[]> {
@@ -75,5 +77,4 @@ export class MockRepo implements IRepo {
     this.todos.set(todoItem.id, todoItem);
     return Promise.resolve(todoItem);
   }
-
 }
