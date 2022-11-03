@@ -1,8 +1,8 @@
 import Hapi, { Request, ResponseToolkit } from "@hapi/hapi";
 
 // addRoutes takes a server and adds routes to it
-export const addRoutes = (server: Hapi.Server): void => {
-  console.log("addRoutes");
+export function addRoutes(server: Hapi.Server): void {
+  console.log("init", "adding routes");
   server.route({
     method: "GET",
     path: "/",
@@ -11,4 +11,4 @@ export const addRoutes = (server: Hapi.Server): void => {
       return h.response("Hello World").code(200);
     },
   });
-};
+}

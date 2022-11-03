@@ -1,4 +1,3 @@
-import { init } from "./server";
 import { addRoutes } from "./routes/routes";
 import Hapi from "@hapi/hapi";
 
@@ -21,25 +20,17 @@ async function enableLogging(server: Hapi.Server): Promise<void> {
   });
 }
 
-async function run(): Promise<void> {
-  new Promise(async (resolve, reject) => {
-    try {
-      let server = Hapi.server({
-        port: process.env.PORT || 4000,
-        host: "0.0.0.0",
-        debug: { request: ["error"] },
-      });
-      // return a promise
-
-      console.log(`Server will run at: ${server.info.uri}`);
-      addRoutes(server);
-      await enableLogging(server);
-      await server.start();
-      resolve(undefined);
-    } catch (err) {
-      reject(err);
-    }
+async function run() {
+  const server = Hapi.server({
+    port: process.env.PORT || 4000,
+    host: "0.0.0.0",
+    debug: { request: ["error"] },
   });
+
+  console.log(`Server will run at: ${server.info.uri}`);
+  addRoutes(server);
+  await enableLogging(server);
+  await server.start();
 }
 
 console.log("about to run");

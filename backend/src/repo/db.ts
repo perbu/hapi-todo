@@ -33,7 +33,7 @@ export class Repo implements IRepo {
   private readonly mode: number;
   private readonly fresh: boolean;
 
-  constructor(path: string, fresh: boolean = false) {
+  constructor(path: string, fresh = false) {
     this.path = path;
     this.fresh = fresh;
     if (fresh) {
@@ -70,7 +70,7 @@ export class Repo implements IRepo {
           reject(err);
         }
         // delete the actual file:
-        fs.unlink(this.path, (err) => {
+        fs.unlink(this.path, () => {
           resolve();
         });
       });
