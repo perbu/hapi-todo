@@ -1,5 +1,7 @@
-import { addRoutes } from "./routes/routes";
 import Hapi from "@hapi/hapi";
+import { TodoService } from "./service/service";
+import { Repo } from "./repo/db";
+import { TodoApi } from "./api/api";
 
 process.on("unhandledRejection", (err) => {
   console.error("unhandledRejection:" + err);
@@ -28,7 +30,17 @@ async function run() {
   });
 
   console.log(`Server will run at: ${server.info.uri}`);
-  addRoutes(server);
+  const repo = new Repo("prod.sqlite3", false);
+  try {
+    await repo.init();
+  } catch (err) {
+    console.error("Error creating database: " + err);
+    process.exit(1);
+  }
+  console.log("Database initialized");
+  const service = new TodoService(repo);
+  const api = new TodoApi(server, service);
+  api.addRoutes();
   await enableLogging(server);
   await server.start();
 }

@@ -1,13 +1,15 @@
 import sqlite3 from "sqlite3";
 import { TodoItem } from "../model/model";
 import * as fs from "fs";
+import { ISqlite } from "sqlite";
+import RunResult = ISqlite.RunResult;
 
 export interface IRepo {
   getTodoItems(): Promise<TodoItem[]>;
   getTodoItem(id: number): Promise<TodoItem>;
   createTodoItem(todoItem: TodoItem): Promise<TodoItem>;
   updateTodoItem(todoItem: TodoItem): Promise<TodoItem>;
-  deleteTodoItem(id: number): Promise<void>;
+  deleteTodoItem(id: number): Promise<boolean>;
   deleteAllTodoItems(): Promise<void>;
   init(): Promise<void>;
   deleteDb(): Promise<void>;
@@ -166,14 +168,19 @@ export class Repo implements IRepo {
     });
   }
 
-  public async deleteTodoItem(id: number): Promise<void> {
+  public async deleteTodoItem(id: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      this.db?.run("DELETE FROM todos WHERE id = ?", [id], (err) => {
-        if (err) {
-          reject(err);
+      this.db?.run(
+        "DELETE FROM todos WHERE id = ?",
+        [id],
+        (res: RunResult, err: Error) => {
+          if (err) {
+            reject(err);
+          }
+          // return true if a row was deleted, false otherwise
+          resolve(res.changes === 1);
         }
-        resolve();
-      });
+      );
     });
   }
   public async deleteAllTodoItems(): Promise<void> {

@@ -3,7 +3,7 @@ import { TodoItem } from "../../src/model/model";
 
 export class MockRepo implements IRepo {
   todos: Map<number, TodoItem>;
-  broken: boolean = false;
+  broken = false;
   constructor() {
     this.todos = new Map<number, TodoItem>();
   }
@@ -35,12 +35,12 @@ export class MockRepo implements IRepo {
     return Promise.resolve(undefined);
   }
 
-  public async deleteTodoItem(id: number): Promise<void> {
+  public async deleteTodoItem(id: number): Promise<boolean> {
     if (this.broken) {
       return Promise.reject(new Error("Repo is broken"));
     }
-    this.todos.delete(id);
-    return Promise.resolve(undefined);
+    const res = await this.todos.delete(id);
+    return Promise.resolve(res);
   }
 
   public async getTodoItem(id: number): Promise<TodoItem> {

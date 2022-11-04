@@ -1,7 +1,6 @@
 import { TodoService } from "../../src/service/service";
 import { IRepo } from "../../src/repo/db";
-import { MockRepo } from "./repomock.test";
-import exp from "constants";
+import { MockRepo } from "./repomock";
 
 const dbName = "tests.sqlite3";
 
