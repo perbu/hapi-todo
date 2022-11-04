@@ -1,8 +1,6 @@
 import { TodoService } from "../../src/service/service";
 import { IRepo } from "../../src/repo/db";
-import { MockRepo } from "./repomock";
-
-const dbName = "tests.sqlite3";
+import { MockRepo } from "../mocks/repomock";
 
 describe("Service", () => {
   let repo: IRepo;

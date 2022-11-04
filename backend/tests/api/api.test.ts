@@ -1,9 +1,8 @@
-import { MockRepo } from "../service/repomock";
+import { MockRepo } from "../mocks/repomock";
 import { TodoApi } from "../../src/api/api";
 import { TodoService } from "../../src/service/service";
 import * as Hapi from "@hapi/hapi";
 import { TodoItem } from "../../src/model/model";
-import exp = require("constants");
 
 describe("TodoApi", () => {
   let server: Hapi.Server; // we need the server to inject the request.
@@ -43,6 +42,22 @@ describe("TodoApi", () => {
     const list = await getTodoList(server);
     expect(list.length).toBe(1);
     expect(list[0]).toEqual(todo2);
+  });
+  test("Create an item and update it, make sure it is updated", async () => {
+    const todo = await createTodoItem(server, 1);
+    expect(todo.id).toBe(1);
+    expect(todo.description).toBe("todo 1");
+    expect(todo.done).toBe(false);
+    const updateRes = await updateTodoItem(server, {
+      id: todo.id,
+      description: "updated",
+      done: true,
+    });
+    expect(updateRes).toBe(200);
+    const list = await getTodoList(server);
+    expect(list.length).toBe(1);
+    expect(list[0].description).toBe("updated");
+    expect(list[0].done).toBe(true);
   });
 });
 
@@ -96,12 +111,29 @@ async function createTodoItem(
 // return the return code so we can check it.
 async function deleteTodoItem(
   server: Hapi.Server,
-  id: number
+  id?: number
 ): Promise<number> {
+  // check that id is defined
+  expect(id).toBeDefined();
   const res = await server.inject({
     method: "DELETE",
     url: `/delete/${id}`,
   });
 
+  return res.statusCode;
+}
+
+// update the given todo item:
+// return the updated todo item
+async function updateTodoItem(
+  server: Hapi.Server,
+  update: TodoItem
+): Promise<number> {
+  expect(update.id).toBeDefined();
+  const res = await server.inject({
+    method: "PUT",
+    url: `/update`,
+    payload: update,
+  });
   return res.statusCode;
 }

@@ -18,7 +18,8 @@ export class TodoApi {
   }
   // get a specific todo item
   public async getTodoHandler(request: Request, h: ResponseToolkit) {
-    const id = request.params.id;
+    // get the id from the request parameters and make it a number
+    const id = parseInt(request.params.id, 10);
     const todo = await this.service.getTodoItem(id);
     return h.response(todo).code(200);
   }
@@ -31,9 +32,10 @@ export class TodoApi {
   }
   // delete a todo item by id
   public async deleteTodoHandler(request: Request, h: ResponseToolkit) {
-    const id = request.params.id;
+    const id = parseInt(request.params.id, 10);
     const result = await this.service.deleteTodoItem(id);
-    return h.response({}).code(200);
+    // if result is true, return a 200, otherwise return a 404
+    return h.response({}).code(result ? 200 : 404);
   }
   // update a todo item
   public async updateTodoHandler(request: Request, h: ResponseToolkit) {
@@ -48,7 +50,6 @@ export class TodoApi {
   }
   // the handler for the root path. Just returns "Hello World"
   async rootHandler(request: Request, h: ResponseToolkit) {
-    console.log("rootHandler for ", this.name);
     return h.response("Hello World").code(200);
     // this.server.log("info", "rootHandler");
   }

@@ -39,7 +39,7 @@ export class MockRepo implements IRepo {
     if (this.broken) {
       return Promise.reject(new Error("Repo is broken"));
     }
-    const res = await this.todos.delete(id);
+    const res = this.todos.delete(id);
     return Promise.resolve(res);
   }
 

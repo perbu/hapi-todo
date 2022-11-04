@@ -49,7 +49,7 @@ console.log("about to run");
 
 run()
   .then(() => {
-    console.log("done running");
+    console.log("running");
   })
   .catch((err) => {
     console.error("run error");
