@@ -111,6 +111,28 @@ describe("TodoApi, abnormal tests", () => {
     expect(res4.statusCode).toBe(500);
     repo.unbreak();
   });
+
+  test("Query the API with an invalid ID", async () => {
+    const res = await server.inject("/get/foo");
+    expect(res.statusCode).toBe(400);
+    const res2 = await server.inject("/delete/foo");
+    expect(res2.statusCode).toBe(400);
+  });
+
+  test("Send some invalid data to the api and make sure it returns 400", async () => {
+    const res = await server.inject({
+      method: "POST",
+      url: `/create`,
+      payload: { description: "todo 1" },
+    });
+    expect(res.statusCode).toBe(400);
+    const res2 = await server.inject({
+      method: "POST",
+      url: `/update`,
+      payload: { description: "todo 1" },
+    });
+    expect(res2.statusCode).toBe(400);
+  });
 });
 
 test("Basic test of the root handler", async () => {

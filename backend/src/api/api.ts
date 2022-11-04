@@ -1,6 +1,7 @@
 import Hapi, { Request, ResponseToolkit } from "@hapi/hapi";
 import { ITodoService } from "../service/service";
 import { TodoItem } from "../model/model";
+import Joi, { Err } from "joi";
 
 export class TodoApi {
   service: ITodoService;
@@ -21,7 +22,8 @@ export class TodoApi {
     // get the id from the request parameters and make it a number
     const id = parseInt(request.params.id, 10);
     const todo = await this.service.getTodoItem(id);
-    return h.response(todo).code(200);
+    // if the todo item is null, return a 404, otherwise return the todo item
+    return h.response(todo).code(todo ? 200 : 404);
   }
   // create a new todo item
   public async createTodoHandler(request: Request, h: ResponseToolkit) {
@@ -58,6 +60,19 @@ export class TodoApi {
   }
 
   public addRoutes() {
+    this.server.validator(Joi);
+
+    const newTodoSchema = Joi.object({
+      description: Joi.string().required(),
+      done: Joi.boolean().required(),
+    });
+    const todoSchema = Joi.object({
+      id: Joi.number().required(),
+      description: Joi.string().required(),
+      done: Joi.boolean().required(),
+    });
+    const idSchema = Joi.number().required().min(1);
+
     this.server.route([
       {
         // root handler
@@ -97,4 +112,16 @@ export class TodoApi {
       },
     ]);
   }
+}
+
+async function validationError(
+  request: Request,
+  h: ResponseToolkit,
+  err: Error | undefined
+) {
+  if (err) {
+    console.error(err);
+    return Promise.reject(err);
+  }
+  return Promise.resolve();
 }

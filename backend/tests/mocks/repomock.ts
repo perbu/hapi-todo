@@ -43,14 +43,11 @@ export class MockRepo implements IRepo {
     return Promise.resolve(res);
   }
 
-  public async getTodoItem(id: number): Promise<TodoItem> {
+  public async getTodoItem(id: number): Promise<TodoItem | undefined> {
     if (this.broken) {
       return Promise.reject(new Error("Repo is broken"));
     }
-    const item = this.todos.get(id);
-    return item
-      ? Promise.resolve(item)
-      : Promise.reject(new Error("Item not found"));
+    return this.todos.get(id);
   }
 
   public async getTodoItems(): Promise<TodoItem[]> {

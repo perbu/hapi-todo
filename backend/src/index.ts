@@ -42,7 +42,15 @@ async function run() {
   const api = new TodoApi(server, service);
   api.addRoutes();
   await enableLogging(server);
-  await server.start();
+  server
+    .start()
+    .then(() => {
+      console.log("Server running at:", server.info.uri);
+    })
+    .catch((err) => {
+      console.error("Error starting server: " + err);
+      process.exit(1);
+    });
 }
 
 console.log("about to run");

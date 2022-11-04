@@ -27,7 +27,7 @@ describe("Repo", () => {
     // clear the database
   });
   it("should be able to update a todo", async () => {
-    let todo = await repo.createTodoItem({
+    const todo = await repo.createTodoItem({
       description: "This is a todo",
       done: false,
     });

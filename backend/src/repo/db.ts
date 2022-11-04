@@ -6,7 +6,7 @@ import RunResult = ISqlite.RunResult;
 
 export interface IRepo {
   getTodoItems(): Promise<TodoItem[]>;
-  getTodoItem(id: number): Promise<TodoItem>;
+  getTodoItem(id: number): Promise<TodoItem | undefined>;
   createTodoItem(todoItem: TodoItem): Promise<TodoItem>;
   updateTodoItem(todoItem: TodoItem): Promise<boolean>;
   deleteTodoItem(id: number): Promise<boolean>;
@@ -50,18 +50,22 @@ export class Repo implements IRepo {
       this.db = new sqlite3.Database(this.path, this.mode, async (err) => {
         if (err) {
           // create enriched Error:
+          console.error(err);
           new Error(`Could not open database ${this.path}: ${err.message}`);
-          reject(err);
+          return reject(err);
         }
         if (this.fresh) {
+          console.warn("initializing fresh database");
           try {
             await this.dropSchema();
             await this.createSchema();
-            resolve();
+            return resolve();
           } catch (err) {
-            reject(err);
+            return reject(err);
           }
         }
+        console.log("database initialized");
+        return resolve();
       });
     });
   }
@@ -69,11 +73,11 @@ export class Repo implements IRepo {
     return new Promise((resolve, reject) => {
       this.db?.close((err) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
         // delete the actual file:
         fs.unlink(this.path, () => {
-          resolve();
+          return resolve();
         });
       });
     });
@@ -90,9 +94,9 @@ export class Repo implements IRepo {
     return new Promise((resolve, reject) => {
       this.db?.run("DROP TABLE IF EXISTS todos", (err) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
-        resolve();
+        return resolve();
       });
     });
   }
@@ -100,9 +104,9 @@ export class Repo implements IRepo {
     return new Promise((resolve, reject) => {
       this.db?.run(schemaSql, (err: Error) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
-        resolve();
+        return resolve();
       });
     });
   }
@@ -120,16 +124,26 @@ export class Repo implements IRepo {
     });
   }
   // get a single todo-item from the database
-  public async getTodoItem(id: number): Promise<TodoItem> {
+  public async getTodoItem(id: number): Promise<TodoItem | undefined> {
     return new Promise((resolve, reject) => {
+      // check if id is a number
+      if (isNaN(id)) {
+        return reject(new Error("id must be a number"));
+      }
       this.db?.get(
         "SELECT * FROM todos WHERE id = ?",
         [id],
-        (err, row: DbTodoItem) => {
+        (err: Error, row: DbTodoItem) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
-          resolve(Repo._toTodoItem(row));
+          console.debug("row", row);
+          // if row is undefined, the todo-item was not found. Resolve with undefined
+          if (row === undefined) {
+            console.log("todo-item not found:", id);
+            return resolve(undefined);
+          }
+          return resolve(Repo._toTodoItem(row));
         }
       );
     });
@@ -144,10 +158,10 @@ export class Repo implements IRepo {
         [todoItem.description, todoItem.done],
         function (err) {
           if (err) {
-            reject(err);
+            return reject(err);
           }
           todoItem.id = this.lastID;
-          resolve(todoItem);
+          return resolve(todoItem);
         }
       );
     });
@@ -160,12 +174,14 @@ export class Repo implements IRepo {
         [todoItem.description, todoItem.done, todoItem.id],
         (res: RunResult, err: Error) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
+          /*
           if (res.changes === 0) {
             resolve(false);
           }
-          resolve(true);
+           */
+          return resolve(true);
         }
       );
     });
@@ -178,10 +194,10 @@ export class Repo implements IRepo {
         [id],
         (res: RunResult, err: Error) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
           // return true if a row was deleted, false otherwise
-          resolve(res.changes === 1);
+          return resolve(res.changes === 1);
         }
       );
     });
@@ -190,9 +206,9 @@ export class Repo implements IRepo {
     return new Promise((resolve, reject) => {
       this.db?.run("DELETE FROM todos", (err) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
-        resolve();
+        return resolve();
       });
     });
   }

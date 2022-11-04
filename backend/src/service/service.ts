@@ -3,7 +3,7 @@ import { IRepo } from "../repo/db";
 
 export interface ITodoService {
   getTodoItems(): Promise<TodoItem[]>;
-  getTodoItem(id: number): Promise<TodoItem>;
+  getTodoItem(id: number): Promise<TodoItem | undefined>;
   updateTodoItem(todoItem: TodoItem): Promise<boolean>;
   createTodoItem(todoItem: TodoItem): Promise<TodoItem>;
   deleteTodoItem(id: number): Promise<boolean>;
@@ -26,7 +26,7 @@ export class TodoService implements ITodoService {
     return this.repo.deleteAllTodoItems();
   }
 
-  public getTodoItem(id: number): Promise<TodoItem> {
+  public getTodoItem(id: number): Promise<TodoItem | undefined> {
     return this.repo.getTodoItem(id);
   }
 
