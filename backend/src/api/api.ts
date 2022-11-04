@@ -46,7 +46,10 @@ export class TodoApi {
       return h.response({}).code(400);
     }
     const result = await this.service.updateTodoItem(todo);
-    return h.response(result).code(200);
+    if (!result) {
+      this.server.log("api", "update failed, item not found in repo");
+    }
+    return h.response({}).code(result ? 200 : 404);
   }
   // the handler for the root path. Just returns "Hello World"
   async rootHandler(request: Request, h: ResponseToolkit) {

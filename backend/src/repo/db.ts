@@ -8,7 +8,7 @@ export interface IRepo {
   getTodoItems(): Promise<TodoItem[]>;
   getTodoItem(id: number): Promise<TodoItem>;
   createTodoItem(todoItem: TodoItem): Promise<TodoItem>;
-  updateTodoItem(todoItem: TodoItem): Promise<TodoItem>;
+  updateTodoItem(todoItem: TodoItem): Promise<boolean>;
   deleteTodoItem(id: number): Promise<boolean>;
   deleteAllTodoItems(): Promise<void>;
   init(): Promise<void>;
@@ -153,16 +153,19 @@ export class Repo implements IRepo {
     });
   }
   // update a todo-item in the database, either by changing the description or the done status
-  public async updateTodoItem(todoItem: TodoItem): Promise<TodoItem> {
+  public async updateTodoItem(todoItem: TodoItem): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.db?.run(
         "UPDATE todos SET description = ?, done = ? WHERE id = ?",
         [todoItem.description, todoItem.done, todoItem.id],
-        (err) => {
+        (res: RunResult, err: Error) => {
           if (err) {
             reject(err);
           }
-          resolve(todoItem);
+          if (res.changes === 0) {
+            resolve(false);
+          }
+          resolve(true);
         }
       );
     });

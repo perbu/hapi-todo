@@ -4,7 +4,7 @@ import { TodoService } from "../../src/service/service";
 import * as Hapi from "@hapi/hapi";
 import { TodoItem } from "../../src/model/model";
 
-describe("TodoApi", () => {
+describe("TodoApi, normal tests", () => {
   let server: Hapi.Server; // we need the server to inject the request.
   let service: TodoService; // we need the service to reset the database.
 
@@ -58,6 +58,58 @@ describe("TodoApi", () => {
     expect(list.length).toBe(1);
     expect(list[0].description).toBe("updated");
     expect(list[0].done).toBe(true);
+  });
+});
+
+describe("TodoApi, abnormal tests", () => {
+  let server: Hapi.Server; // we need the server to inject the request.
+  let service: TodoService; // we need the service to reset the database.
+  let repo: MockRepo;
+  beforeAll(() => {
+    repo = new MockRepo();
+    service = new TodoService(repo);
+    server = Hapi.server();
+    const api = new TodoApi(server, service);
+    api.addRoutes();
+  });
+  beforeEach(async () => {
+    // make sure each test starts with an empty database
+    await service.deleteAllTodoItems();
+  });
+  test("Create an item and try to delete it with a wrong id", async () => {
+    const todo = await createTodoItem(server, 1);
+    expect(todo.id).toBe(1);
+    const deleteRes = await deleteTodoItem(server, 2);
+    expect(deleteRes).toBe(404);
+  });
+  test("Create an item and try to update it with a wrong id", async () => {
+    const todo = await createTodoItem(server, 1);
+    expect(todo.id).toBe(1);
+    const updateRes = await updateTodoItem(server, {
+      id: 2,
+      description: "updated",
+      done: true,
+    });
+    expect(updateRes).toBe(404);
+  });
+  test("Break the underlying repo and make sure the api returns 500", async () => {
+    repo.break();
+    const res = await server.inject("/list");
+    expect(res.statusCode).toBe(500);
+    const res2 = await server.inject("/get/1");
+    expect(res2.statusCode).toBe(500);
+    const res3 = await server.inject({
+      method: "DELETE",
+      url: `/delete/1`,
+    });
+    expect(res3.statusCode).toBe(500);
+    const res4 = await server.inject({
+      method: "POST",
+      url: `/create`,
+      payload: { description: "todo 1", done: false },
+    });
+    expect(res4.statusCode).toBe(500);
+    repo.unbreak();
   });
 });
 

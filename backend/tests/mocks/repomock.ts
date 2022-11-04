@@ -67,14 +67,25 @@ export class MockRepo implements IRepo {
     return Promise.resolve(undefined);
   }
 
-  updateTodoItem(todoItem: TodoItem): Promise<TodoItem> {
+  public async updateTodoItem(todoItem: TodoItem): Promise<boolean> {
     if (this.broken) {
       return Promise.reject(new Error("Repo is broken"));
     }
     if (todoItem.id === undefined) {
       return Promise.reject(new Error("Item has no id"));
     }
+    // check if the todoItem exists
+    const item = this.todos.get(todoItem.id);
+    if (item === undefined) {
+      return false;
+    }
     this.todos.set(todoItem.id, todoItem);
-    return Promise.resolve(todoItem);
+    return true;
+  }
+  public break() {
+    this.broken = true;
+  }
+  public unbreak() {
+    this.broken = false;
   }
 }
