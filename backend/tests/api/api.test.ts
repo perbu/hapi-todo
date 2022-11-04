@@ -61,7 +61,7 @@ describe("TodoApi, normal tests", () => {
   });
 });
 
-describe("TodoApi, abnormal tests", () => {
+describe("TodoApi, invalid input", () => {
   let server: Hapi.Server; // we need the server to inject the request.
   let service: TodoService; // we need the service to reset the database.
   let repo: MockRepo;
@@ -92,46 +92,81 @@ describe("TodoApi, abnormal tests", () => {
     });
     expect(updateRes).toBe(404);
   });
-  test("Break the underlying repo and make sure the api returns 500", async () => {
-    repo.break();
-    const res = await server.inject("/list");
-    expect(res.statusCode).toBe(500);
-    const res2 = await server.inject("/get/1");
-    expect(res2.statusCode).toBe(500);
-    const res3 = await server.inject({
-      method: "DELETE",
-      url: `/delete/1`,
-    });
-    expect(res3.statusCode).toBe(500);
-    const res4 = await server.inject({
-      method: "POST",
-      url: `/create`,
-      payload: { description: "todo 1", done: false },
-    });
-    expect(res4.statusCode).toBe(500);
-    repo.unbreak();
-  });
 
   test("Query the API with an invalid ID", async () => {
     const res = await server.inject("/get/foo");
     expect(res.statusCode).toBe(400);
-    const res2 = await server.inject("/delete/foo");
-    expect(res2.statusCode).toBe(400);
   });
 
-  test("Send some invalid data to the api and make sure it returns 400", async () => {
+  test("Delete a todo item with non-numeric id", async () => {
+    const res = await server.inject({
+      method: "DELETE",
+      url: "/delete/foo",
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  test("Create an item with incomplete data", async () => {
     const res = await server.inject({
       method: "POST",
       url: `/create`,
       payload: { description: "todo 1" },
     });
     expect(res.statusCode).toBe(400);
-    const res2 = await server.inject({
-      method: "POST",
+  });
+
+  test("Update an item with incomplete data", async () => {
+    const payload = {
+      description: "incomplete",
+    };
+    const res = await server.inject({
+      method: "PUT",
       url: `/update`,
-      payload: { description: "todo 1" },
+      payload: payload,
     });
-    expect(res2.statusCode).toBe(400);
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe("TodoApi, broken repo tests", () => {
+  let server: Hapi.Server; // we need the server to inject the request.
+  let service: TodoService; // we need the service to reset the database.
+  let repo: MockRepo;
+  beforeAll(() => {
+    repo = new MockRepo();
+    service = new TodoService(repo);
+    server = Hapi.server();
+    const api = new TodoApi(server, service);
+    api.addRoutes();
+    repo.break();
+  });
+  afterAll(() => {
+    repo.unbreak();
+  });
+
+  test("/list", async () => {
+    repo.break();
+    const res = await server.inject("/list");
+    expect(res.statusCode).toBe(500);
+  });
+  test("/get", async () => {
+    const res2 = await server.inject("/get/1");
+    expect(res2.statusCode).toBe(500);
+  });
+  test("/delete", async () => {
+    const res3 = await server.inject({
+      method: "DELETE",
+      url: `/delete/1`,
+    });
+    expect(res3.statusCode).toBe(500);
+  });
+  test("/create", async () => {
+    const res4 = await server.inject({
+      method: "POST",
+      url: `/create`,
+      payload: { description: "todo 1", done: false },
+    });
+    expect(res4.statusCode).toBe(500);
   });
 });
 
