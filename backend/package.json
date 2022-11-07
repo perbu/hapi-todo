@@ -10,7 +10,8 @@
     "dev": "run-p dev:*",
     "build": "tsc -p .",
     "start": "npm run build && node dist/index.js",
-    "lint": "eslint --ext .ts src"
+    "lint": "eslint --ext .ts src",
+    "app": "npm run build && cp -r ../app/dist dist/app && nodemon dist/index.js"
   },
   "author": "Per Buer <per.buer@gmail.com>",
   "license": "MIT",

@@ -116,10 +116,10 @@ export class Repo implements IRepo {
     return new Promise((resolve, reject) => {
       this.db?.all("SELECT * FROM todos", (err, rows: DbTodoItem[]) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
         // convert the rows to TodoItem objects and return them
-        resolve(rows.map(Repo._toTodoItem));
+        return resolve(rows.map(Repo._toTodoItem));
       });
     });
   }

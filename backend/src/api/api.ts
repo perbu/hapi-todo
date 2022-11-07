@@ -15,48 +15,73 @@ export class TodoApi {
 
   // list all todos
   public async listTodoHandler(request: Request, h: ResponseToolkit) {
-    const todos = await this.service.getTodoItems();
-    return h.response(todos).code(200);
+    try {
+      const todos = await this.service.getTodoItems();
+      return h.response(todos).code(200);
+    } catch (err) {
+      this.server.log("api", "error listing todos:" + err);
+      return h.response({}).code(500);
+    }
   }
 
   // get a specific todo item
   public async getTodoHandler(request: Request, h: ResponseToolkit) {
-    // get the id from the request parameters and make it a number
-    const id = parseInt(request.params.id, 10);
-    const todo = await this.service.getTodoItem(id);
-    // if the todo item is null, return a 404, otherwise return the todo item
-    return h.response(todo).code(todo ? 200 : 404);
+    try {
+      // get the id from the request parameters and make it a number
+      const id = parseInt(request.params.id, 10);
+      const todo = await this.service.getTodoItem(id);
+      // if the todo item is null, return a 404, otherwise return the todo item
+      return h.response(todo).code(todo ? 200 : 404);
+    } catch (err) {
+      this.server.log("api", "error getting todo item:" + err);
+      return h.response({}).code(500);
+    }
   }
 
   // create a new todo item
   public async createTodoHandler(request: Request, h: ResponseToolkit) {
-    // parse the request payload into an object
-    const todo = request.payload as TodoItem;
-    const result = await this.service.createTodoItem(todo);
-    return h.response(result).code(200);
+    try {
+      // parse the request payload into an object
+      const todo = request.payload as TodoItem;
+      const result = await this.service.createTodoItem(todo);
+      return h.response(result).code(200);
+    } catch (err) {
+      this.server.log("api", "error creating todo item:" + err);
+      return h.response({}).code(500);
+    }
   }
 
   // delete a todo item by id
   public async deleteTodoHandler(request: Request, h: ResponseToolkit) {
-    const id = parseInt(request.params.id, 10);
-    const result = await this.service.deleteTodoItem(id);
-    // if result is true, return a 200, otherwise return a 404
-    return h.response({}).code(result ? 200 : 404);
+    try {
+      const id = parseInt(request.params.id, 10);
+      const result = await this.service.deleteTodoItem(id);
+      // if result is true, return a 200, otherwise return a 404
+      return h.response({}).code(result ? 200 : 404);
+    } catch (err) {
+      this.server.log("api", "error deleting todo item:" + err);
+      return h.response({}).code(500);
+    }
   }
 
   // update a todo item
   public async updateTodoHandler(request: Request, h: ResponseToolkit) {
-    // parse the request payload into an object
-    const todo = request.payload as TodoItem;
-    // check that there is an ID in the payload
-    if (todo.id === undefined) {
-      return h.response({}).code(400);
+    try {
+      // parse the request payload into an object
+      const todo = request.payload as TodoItem;
+      // check that there is an ID in the payload
+      if (todo.id === undefined) {
+        return h.response({}).code(400);
+      }
+      const result = await this.service.updateTodoItem(todo);
+      if (!result) {
+        this.server.log("api", "update failed, item not found in repo");
+      }
+      return h.response({}).code(result ? 200 : 404);
+    } catch (err) {
+      this.server.log("api", "error updating todo item:" + err);
+      return h.response({}).code(500);
     }
-    const result = await this.service.updateTodoItem(todo);
-    if (!result) {
-      this.server.log("api", "update failed, item not found in repo");
-    }
-    return h.response({}).code(result ? 200 : 404);
   }
 
   // the handler for the root path. Just returns "Hello World"
